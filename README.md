@@ -1,18 +1,10 @@
 # NSD
 
-[![Travis Build Status](https://travis-ci.org/NLnetLabs/nsd.svg?branch=master)](https://travis-ci.org/NLnetLabs/nsd)
-[![Packaging status](https://repology.org/badge/tiny-repos/nsd.svg)](https://repology.org/project/nsd/versions)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1462/badge)](https://bestpractices.coreinfrastructure.org/projects/1462)
+This is a fork of [NLnetLabs/nsd](https://github.com/NLnetLabs/nsd) that enables compiling with musl-gcc on Ubuntu resulting in statically bound binary for use in LXC containers.
 
-The NLnet Labs Name Server Daemon (NSD) is an authoritative DNS name server.
-It has been developed for operations in environments where speed,
-reliability, stability and security are of high importance.  If you
-have any feedback, we would love to hear from you. Don’t hesitate to
-[create an issue on Github](https://github.com/NLnetLabs/nsd/issues/new)
-or post a message on the
-[NSD mailing list](https://lists.nlnetlabs.nl/mailman/listinfo/nsd-users).
-You can lean more about NSD by reading our
-[documentation](https://nlnetlabs.nl/documentation/nsd/).
+```
+apt install git flex bison build-essential automake autoconf musl-dev musl-tools
+```
 
 ## Compiling
 
