@@ -264,7 +264,8 @@ xalloc(size_t size)
 void *
 xmallocarray(size_t num, size_t size)
 {  
-        void *result = reallocarray(NULL, num, size);
+        // no reallocarray in musl void *result = reallocarray(NULL, num, size);
+	void *result = malloc(num * size);
    
         if (!result) {
                 log_msg(LOG_ERR, "reallocarray failed: %s", strerror(errno));

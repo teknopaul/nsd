@@ -36,7 +36,7 @@ DNSTAP_OBJ=@DNSTAP_OBJ@
 # K&R C compilers), but causes problems if $U is defined in the env).
 U=
 
-CC		= @CC@
+CC		= musl-gcc
 CPPFLAGS	= @CPPFLAGS@
 CFLAGS		= @CFLAGS@
 LDFLAGS		= @LDFLAGS@
@@ -52,7 +52,7 @@ LEX		= @LEX@
 PROTOC_C	= @PROTOC_C@
 
 COMPILE		= $(CC) $(CPPFLAGS) $(CFLAGS)
-LINK		= $(CC) $(CFLAGS) $(LDFLAGS)
+LINK		= $(CC) -static $(CFLAGS) $(LDFLAGS)
 EDIT		= sed \
 			-e 's,@prefix\@,$(prefix),g' \
 			-e 's,@exec_prefix\@,$(exec_prefix),g' \

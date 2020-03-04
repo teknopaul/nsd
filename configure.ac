@@ -578,9 +578,12 @@ changequote([,]), [
 #endif
 
 /* For Tru64 */
+/*
 #ifdef HAVE_SYS_BITYPES_H
 #include <sys/bitypes.h>
 #endif
+*/
+
 ], ac_cv_type_$1=yes, ac_cv_type_$1=no)])dnl
 AC_MSG_RESULT($ac_cv_type_$1)
 if test $ac_cv_type_$1 = no; then
@@ -1107,9 +1110,11 @@ AH_BOTTOM([
 #endif
 
 /* For Tru64 */
+/*
 #ifdef HAVE_SYS_BITYPES_H
 #include <sys/bitypes.h>
 #endif
+*/
 ])
 
 AH_BOTTOM([
