@@ -130,7 +130,7 @@ SPACE   [ \t]
 LETTER  [a-zA-Z]
 NEWLINE [\n\r]
 ZONESTR [^ \t\n\r();.\"\$]|\\.|\\\n
-CHARSTR [^ \t\n\r();.]|\\.|\\\n
+CHARSTR [^ \t\n\r();.\"]|\\.|\\\n
 QUOTE   \"
 DOLLAR  \$
 COMMENT ;
@@ -223,6 +223,10 @@ ANY     [^\"\n\\]|\\.
 
 	parser->error_occurred = error_occurred;
 }
+<<EOF>> { 
+	static int once = 1;
+	return (once = !once) ? 0 : NL;
+}
 <INITIAL><<EOF>>	{
 	yy_set_bol(1); /* Set beginning of line, so "^" rules match.  */
 	if (include_stack_ptr == 0) {
@@ -311,13 +315,13 @@ ANY     [^\"\n\\]|\\.
 	yyrestart(yyin); /* this is so that lex does not give an internal err */
 	yyterminate();
 }
-<quotedstring>{ANY}*	{ LEXOUT(("STR ")); yymore(); }
+<quotedstring>{ANY}*	{ LEXOUT(("QSTR ")); yymore(); }
 <quotedstring>\n 	{ ++parser->line; yymore(); }
 <quotedstring>{QUOTE} {
 	LEXOUT(("\" "));
 	BEGIN(INITIAL);
 	yytext[yyleng - 1] = '\0';
-	return parse_token(STR, yytext, &lexer_state);
+	return parse_token(QSTR, yytext, &lexer_state);
 }
 
 {ZONESTR}({CHARSTR})* {

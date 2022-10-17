@@ -147,10 +147,10 @@ info "git clone --depth=1 --no-tags -b $GITBRANCH $GITREPO nsd"
 git clone --depth=1 --no-tags -b $GITBRANCH $GITREPO nsd || error_cleanup "git clone command failed"
 
 cd nsd || error_cleanup "NSD not exported correctly from git"
-rm -rf .git || error_cleanup "Failed to remove .git tracking information"
+rm -rf .git .cirrus.yml .github .gitignore || error_cleanup "Failed to remove .git tracking and ci information"
 
-info "Building configure script (autoconf)."
-autoconf || error_cleanup "Autoconf failed."
+info "Building configure script (autoreconf)."
+autoreconf || error_cleanup "Autoconf failed."
 
 info "Building config.h.in (autoheader)."
 autoheader || error_cleanup "Autoheader failed."
@@ -161,9 +161,9 @@ info "Building lexer and parser."
 echo '#include "config.h"' > zlexer.c || error_cleanup "Failed to create lexer."
 flex -i -t zlexer.lex >> zlexer.c || error_cleanup "Failed to create lexer."
 bison -y -d -o zparser.c zparser.y || error_cleanup "Failed to create parser."
-echo "#include \"configyyrename.h\"" > configlexer.c || error_cleanup "Failed to create configlexer"
-flex -i -t configlexer.lex >> configlexer.c || error_cleanup "Failed to create configlexer"
-bison -y -d -o configparser.c configparser.y || error_cleanup "Failed to create configparser"
+echo "#include \"config.h\"" > configlexer.c || error_cleanup "Failed to create configlexer"
+flex -P c_ -i -t configlexer.lex >> configlexer.c || error_cleanup "Failed to create configlexer"
+bison -y -d -p c_ -o configparser.c configparser.y || error_cleanup "Failed to create configparser"
 
 find . -name .c-mode-rc.el -exec rm {} \;
 find . -name .cvsignore -exec rm {} \;
@@ -233,7 +233,7 @@ echo $sha > nsd-$version.tar.gz.sha1
 echo $sha256 > nsd-$version.tar.gz.sha256
 
 echo "create nsd-$version.tar.gz.asc with:"
-echo "    gpg --armor --detach-sign nsd-$version.tar.gz"
+echo "    gpg --armor --detach-sign --digest-algo SHA256 nsd-$version.tar.gz"
 info "NSD distribution created successfully."
 info "SHA1sum: $sha"
 info "SHA256sum: $sha256"
