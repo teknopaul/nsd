@@ -56,7 +56,6 @@ LEX		= @LEX@
 PROTOC_C	= @PROTOC_C@
 COMPILE		= $(CC) $(CPPFLAGS) $(CFLAGS)
 LINK		= $(CC) -static $(CFLAGS) $(LDFLAGS)
-LINK		= $(CC) $(CFLAGS) $(LDFLAGS)
 EDIT		= $(SED) \
 			-e 's,@prefix\@,$(prefix),g' \
 			-e 's,@exec_prefix\@,$(exec_prefix),g' \
