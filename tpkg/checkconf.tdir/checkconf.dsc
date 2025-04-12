@@ -7,9 +7,9 @@ Category:
 Component:
 Depends: 0000_nsd-compile.tpkg
 Help: checkconf.help
-Pre: 
+Pre: checkconf.pre
 Post: 
 Test: checkconf.test
-AuxFiles:checkconf.check, checkconf.nsd1.conf, checkconf.nsd2.conf, checkconf.nsd3.conf, checkconf.nsd4.conf, checkconf.nsd5.conf, checkconf.nsd6.conf, checkconf.nsd7.conf, checkconf.check2
+AuxFiles:checkconf.check, checkconf.check2.in, checkconf.nsd01.conf, checkconf.nsd02.conf, checkconf.nsd03.conf, checkconf.nsd04.conf, checkconf.nsd05.conf, checkconf.nsd06.conf, checkconf.nsd07.conf
 Passed:
 Failure:

@@ -68,11 +68,15 @@ qsetup(nsd_type* nsd, region_type* region, query_type** query, char* config)
 	/* setup nsd */
 	memset(nsd, 0, sizeof(*nsd));
 	nsd->region = region;
-	
+#ifdef BIND8_STATS
+	nsd->st = (struct nsdst*)region_alloc_zero(nsd->region,
+		sizeof(struct nsdst));
+#endif
+
 	/* options */
 	printf("read %s\n", config);
 	nsd->options = nsd_options_create(region);
-	if(!parse_options_file(nsd->options, config, NULL, NULL)) {
+	if(!parse_options_file(nsd->options, config, NULL, NULL, NULL)) {
 		printf("failed to read %s\n", config);
 		exit(1);
 	}
@@ -90,12 +94,10 @@ qsetup(nsd_type* nsd, region_type* region, query_type** query, char* config)
 #endif /* defined(INET6) */
 
 	/* read db */
-	printf("read %s (%d zones)\n", nsd->options->database,
-		(int)nsd_options_num_zones(nsd->options));
-	nsd->db = namedb_open(nsd->options->database, nsd->options);
+	printf("open namedb (%d zones)\n", (int)nsd_options_num_zones(nsd->options));
+	nsd->db = namedb_open(nsd->options);
 	if(!nsd->db) {
-		printf("failed to open %s: %s\n", nsd->options->database,
-			strerror(errno));
+		printf("failed to open namedb\n");
 		exit(1);
 	}
 	namedb_check_zonefiles(nsd, nsd->options, NULL, NULL);

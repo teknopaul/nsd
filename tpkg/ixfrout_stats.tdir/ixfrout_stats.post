@@ -5,12 +5,15 @@
 [ -f .tpkg.var.test ] && source .tpkg.var.test
 
 . ../common.sh
+PRE="../.."
 
-# do your teardown here
-if [ -z nsd.pid ]; then
-        exit 0
+if grep "define BIND8_STATS" $PRE/config.h; then
+	echo "BIND8_STATS enabled, do test"
+else
+	echo "BIND8_STATS not enabled, skip test"
+	exit 0
 fi
 
-# kill NSD
-NSD_PID=`cat nsd.pid`
-kill_pid $NSD_PID
+# do your teardown here
+kill_from_pidfile nsd.pid
+

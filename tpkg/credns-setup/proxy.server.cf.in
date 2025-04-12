@@ -1,12 +1,11 @@
 server:
     zonesdir:            @ZONESDIR@
     username:            @USERNAME@
-    database:           ""
     logfile:            "@abs_builddir@/nsd.log"
     pidfile:            "@abs_builddir@/nsd.pid"
-    difffile:           "@abs_builddir@/ixfr.db"
     xfrdfile:           "@abs_builddir@/xfrd.state"
     xfrdir:             "@abs_builddir@/xfrs"
+    zonelistfile:       "@abs_builddir@/zone.list"
     verbosity:           @VERBOSITY@
     xfrd-reload-timeout: @RELOAD_TIMEOUT@
     ip-address:          @PROXY_IP@

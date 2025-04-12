@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _EDNS_H_
-#define _EDNS_H_
+#ifndef EDNS_H
+#define EDNS_H
 
 #include "buffer.h"
 struct nsd;
@@ -20,15 +20,19 @@ struct query;
 #define NSID_CODE       3               /* nsid option code */
 #define COOKIE_CODE    10               /* COOKIE option code */
 #define EDE_CODE       15               /* Extended DNS Errors option code */
+#define ZONEVERSION_CODE 19             /* ZONEVERSION option code */
 #define DNSSEC_OK_MASK  0x8000U         /* do bit mask */
+
+/* https://iana.org/assignments/dns-parameters/#zoneversion-type-values */
+#define ZONEVERSION_SOA_SERIAL 0
 
 struct edns_data
 {
-	char ok[OPT_LEN];
-	char error[OPT_LEN];
-	char rdata_none[OPT_RDATA];
-	char nsid[OPT_HDR];
-	char cookie[OPT_HDR];
+	unsigned char ok[OPT_LEN];
+	unsigned char error[OPT_LEN];
+	unsigned char rdata_none[OPT_RDATA];
+	unsigned char nsid[OPT_HDR];
+	unsigned char cookie[OPT_HDR];
 };
 typedef struct edns_data edns_data_type;
 
@@ -59,6 +63,7 @@ struct edns_record
 	size_t		   opt_reserved_space;
 	int                dnssec_ok;
 	int                nsid;
+	int                zoneversion;
 	cookie_status_type cookie_status;
 	size_t             cookie_len;
 	uint8_t            cookie[40];
@@ -103,4 +108,4 @@ void edns_init_nsid(edns_data_type *data, uint16_t nsid_len);
 void cookie_verify(struct query *q, struct nsd* nsd, uint32_t *now_p);
 void cookie_create(struct query *q, struct nsd* nsd, uint32_t *now_p);
 
-#endif /* _EDNS_H_ */
+#endif /* EDNS_H */
