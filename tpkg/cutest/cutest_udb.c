@@ -109,6 +109,7 @@ assert_free_structure(udb_base* udb)
 	int e;
 	uint64_t num_e;
 	int verb = 0;
+	(void)num_free; /* avoid unused warning */
 
 	if(verb) printf("** current state ng=%llu\n",
 		(long long unsigned)udb->alloc->disk->nextgrow);
@@ -133,6 +134,8 @@ assert_free_structure(udb_base* udb)
 	}
 	CuAssertTrue(tc, num_free_bytes == udb->alloc->disk->stat_free);
 	CuAssertTrue(tc, num_alloc_bytes == udb->alloc->disk->stat_alloc);
+	if(verb) printf("num free chunks=%llu\n",
+		(long long unsigned)num_free);
 
 	/* check that the free lists are coherent */
 	for(e = UDB_ALLOC_CHUNK_MINEXP; e <= UDB_ALLOC_CHUNKS_MAX; e++) {

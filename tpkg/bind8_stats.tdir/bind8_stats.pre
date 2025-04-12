@@ -4,11 +4,18 @@
 # use .tpkg.var.test for in test variable passing
 [ -f .tpkg.var.test ] && source .tpkg.var.test
 . ../common.sh
+PRE="../.."
+
+if grep "define BIND8_STATS" $PRE/config.h; then
+	echo "BIND8_STATS enabled, do test"
+else
+	echo "BIND8_STATS not enabled, skip test"
+	exit 0
+fi
 
 # start NSD
 get_random_port 1
 TPKG_PORT=$RND_PORT
-PRE="../.."
 TPKG_NSD_PID="nsd.pid.$$"
 TPKG_NSD="$PRE/nsd"
 
@@ -17,7 +24,7 @@ echo "export TPKG_PORT=$TPKG_PORT" > .tpkg.var.test
 echo "export TPKG_NSD_PID=$TPKG_NSD_PID" >> .tpkg.var.test
 
 # debug echo of command.
-echo $TPKG_NSD -c bind8_stats.conf -u "" -p $TPKG_PORT -P $TPKG_NSD_PID -f bind8_stats.db
+echo $TPKG_NSD -c bind8_stats.conf -u "" -p $TPKG_PORT -P $TPKG_NSD_PID
 
-$TPKG_NSD -c bind8_stats.conf -u "" -p $TPKG_PORT -P $TPKG_NSD_PID -f bind8_stats.db
+$TPKG_NSD -c bind8_stats.conf -u "" -p $TPKG_PORT -P $TPKG_NSD_PID
 wait_nsd_up nsd.logfile

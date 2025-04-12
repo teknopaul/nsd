@@ -22,11 +22,15 @@ if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
-kill_pid `cat nsd.pid`
+kill_from_pidfile nsd.pid
 
 # printout the zone
-grep -v "^;" rr-test.cmp_zone > bak.zone
-grep -v "^;" rr-test.zone > cmp.zone
+# The test was created on a system without ntp named in /etc/services
+# we anticipate for systems that *do* have this name in /etc/servives,
+# by changing ntp in the WKS RR of the written out zone file in the number 123.
+#
+grep -v "^;" rr-test.cmp_zone | sed 's/ ntp/ 123/g' > bak.zone
+grep -v "^;" rr-test.zone | sed 's/ ntp/ 123/g' > cmp.zone
 
 if wdiff bak.zone cmp.zone >/dev/null; then
 	echo "diff ok"
@@ -38,50 +42,50 @@ else
 fi
 
 # test wireformat parse routine, by reading the db again.
-echo ""
-echo "second test (read own wireformat from db)"
-rm -f rr-test.zone
+# on-disk binary database has been removed
+#echo ""
+#echo "second test (read own wireformat from db)"
+#rm -f rr-test.zone
 mv cmp.zone firstwrite.zone
-../../nsd -c nsd.conf -p $RND_PORT
-wait_nsd_up nsd.log
-../../nsd-control -c nsd.conf write
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-if test ! -f rr-test.zone; then sleep 1; fi
-kill_pid `cat nsd.pid`
-
-grep -v "^;" rr-test.zone > cmp.zone
-
-if wdiff bak.zone cmp.zone >/dev/null; then
-	echo "diff ok, for read of database (wireformat read)"
-else
-	echo "zone printed differently, the second time (wireformat read)"
-	cat nsd.log
-	wdiff -3 bak.zone cmp.zone
-	exit 1
-fi
-
-mv cmp.zone secondwrite.zone
-if wdiff firstwrite.zone secondwrite.zone >/dev/null; then
-	echo "diff ok"
-else
-	echo "zone printed differently, the second time"
-	cat nsd.log
-	wdiff -3 firstwrite.zone secondwrite.zone
-	exit 1
-fi
+#../../nsd -c nsd.conf -p $RND_PORT
+#wait_nsd_up nsd.log
+#../../nsd-control -c nsd.conf write
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#if test ! -f rr-test.zone; then sleep 1; fi
+#kill_from_pidfile nsd.pid
+#
+#grep -v "^;" rr-test.zone | sed 's/ ntp/ 123/g' > cmp.zone
+#
+#if wdiff bak.zone cmp.zone >/dev/null; then
+#	echo "diff ok, for read of database (wireformat read)"
+#else
+#	echo "zone printed differently, the second time (wireformat read)"
+#	cat nsd.log
+#	wdiff -3 bak.zone cmp.zone
+#	exit 1
+#fi
+#
+#mv cmp.zone secondwrite.zone
+#if wdiff firstwrite.zone secondwrite.zone >/dev/null; then
+#	echo "diff ok"
+#else
+#	echo "zone printed differently, the second time"
+#	cat nsd.log
+#	wdiff -3 firstwrite.zone secondwrite.zone
+#	exit 1
+#fi
 
 # now read its own output.
 echo ""
 echo "third test (read own text output)"
-rm -f rr-test.db
 ../../nsd -c nsd.conf -p $RND_PORT -V 3
 wait_nsd_up nsd.log
 wait_logfile nsd.log "read with success" 10
@@ -97,9 +101,9 @@ if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
 if test ! -f rr-test.zone; then sleep 1; fi
-kill_pid `cat nsd.pid`
+kill_from_pidfile nsd.pid
 
-grep -v "^;" rr-test.zone > cmp.zone
+grep -v "^;" rr-test.zone | sed 's/ ntp/ 123/g' > cmp.zone
 cp cmp.zone thirdwrite.zone
 
 if wdiff bak.zone cmp.zone >/dev/null; then
@@ -120,5 +124,12 @@ else
 	exit 1
 fi
 echo ""
+
+## simdzone allow NSAP-PTR only in the nsap.int. domain
+if ! ../../nsd-checkzone 3.3.1.e.1.0.0.0.0.0.0.0.0.0.a.5.0.0.0.8.5.0.0.0.7.4.nsap.int. rr-test.nsap.int.zone
+then
+	echo "Could not parse NSAP-PTR provisioned zone"
+	exit 1
+fi
 
 exit 0

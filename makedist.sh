@@ -137,7 +137,7 @@ info "RELEASE CANDIDATE is $RC"
 
 # Creating temp directory
 info "Creating temporary working directory"
-temp_dir=`mktemp -d nsd-dist-XXXXXX`
+temp_dir=`mktemp -t -d nsd-dist-XXXXXX`
 info "Directory '$temp_dir' created."
 cd $temp_dir
 
@@ -147,20 +147,25 @@ info "git clone --depth=1 --no-tags -b $GITBRANCH $GITREPO nsd"
 git clone --depth=1 --no-tags -b $GITBRANCH $GITREPO nsd || error_cleanup "git clone command failed"
 
 cd nsd || error_cleanup "NSD not exported correctly from git"
+git submodule update --init || error_cleanup "Could not fetch submodule"
 rm -rf .git .cirrus.yml .github .gitignore || error_cleanup "Failed to remove .git tracking and ci information"
+rm -rf simdzone/.git simdzone/.github simdzone/.gitignore \
+       simdzone/cmake simdzone/CMakeLists.txt simdzone/simdzoneConfig.cmake.in \
+       simdzone/conanfile.txt simdzone/tests simdzone/.readthedocs.yaml \
+       simdzone/doc simdzone/scripts || \
+       error_cleanup "Failed to remove simdzone .git tracking and ci information"
 
 info "Building configure script (autoreconf)."
-autoreconf || error_cleanup "Autoconf failed."
+autoreconf -i || error_cleanup "Autoconf failed."
 
 info "Building config.h.in (autoheader)."
 autoheader || error_cleanup "Autoheader failed."
 
 rm -r autom4te* || error_cleanup "Failed to remove autoconf cache directory."
+rm -r simdzone/autom4te* || error_cleanup "Failed to remove simdzone autoconf cache directory."
+rm -f simdzone/src/config.h.in~ || echo "ignore absence of simdzone/src/config.h.in~ file"
 
 info "Building lexer and parser."
-echo '#include "config.h"' > zlexer.c || error_cleanup "Failed to create lexer."
-flex -i -t zlexer.lex >> zlexer.c || error_cleanup "Failed to create lexer."
-bison -y -d -o zparser.c zparser.y || error_cleanup "Failed to create parser."
 echo "#include \"config.h\"" > configlexer.c || error_cleanup "Failed to create configlexer"
 flex -P c_ -i -t configlexer.lex >> configlexer.c || error_cleanup "Failed to create configlexer"
 bison -y -d -p c_ -o configparser.c configparser.y || error_cleanup "Failed to create configparser"
@@ -187,8 +192,6 @@ if [ "$SNAPSHOT" = "yes" ]; then
     info "Snapshot version number: $version"
 fi
 
-
-
 replace_all doc/README
 replace_all nsd.8.in
 replace_all nsd-control.8.in
@@ -200,7 +203,7 @@ info "Renaming NSD directory to nsd-$version."
 cd ..
 mv nsd nsd-$version || error_cleanup "Failed to rename NSD directory."
 
-tarfile="../nsd-$version.tar.gz"
+tarfile="$cwd/nsd-$version.tar.gz"
 
 if [ -f $tarfile ]; then
     (question "The file $tarfile already exists.  Overwrite?" \
@@ -211,26 +214,27 @@ info "Deleting the tpkg directory"
 rm -rf nsd-$version/tpkg/
 
 info "Creating tar nsd-$version.tar.gz"
-tar czf ../nsd-$version.tar.gz nsd-$version || error_cleanup "Failed to create tar file."
+tar czf $tarfile nsd-$version || error_cleanup "Failed to create tar file."
+
+info "Checking for required auxiliary files"
+cd nsd-$version
+CC=./non-existent-cc ./configure --quiet --no-create 2>&1 | head -n 1 | grep auxiliary && \
+    error_cleanup "Required auxiliary files not available"
 
 cleanup
 
 case $OSTYPE in
-        linux*)
-                sha=`sha1sum nsd-$version.tar.gz |  awk '{ print $1 }'`
-                sha256=`sha256sum nsd-$version.tar.gz |  awk '{ print $1 }'`
-                ;;
-        FreeBSD*)
-                sha=`sha1  nsd-$version.tar.gz |  awk '{ print $5 }'`
-                sha256=`sha256  nsd-$version.tar.gz |  awk '{ print $5 }'`
-                ;;
-	*)
-                sha=`sha1sum nsd-$version.tar.gz |  awk '{ print $1 }'`
-                sha256=`sha256sum nsd-$version.tar.gz |  awk '{ print $1 }'`
-                ;;
+    FreeBSD*)
+        sha=`sha1 $tarfile |  awk '{ print $5 }'`
+        sha256=`sha256 $tarfile |  awk '{ print $5 }'`
+        ;;
+    *)
+        sha=`sha1sum $tarfile |  awk '{ print $1 }'`
+        sha256=`sha256sum $tarfile |  awk '{ print $1 }'`
+        ;;
 esac
-echo $sha > nsd-$version.tar.gz.sha1
-echo $sha256 > nsd-$version.tar.gz.sha256
+echo $sha > $cwd/nsd-$version.tar.gz.sha1
+echo $sha256 > $cwd/nsd-$version.tar.gz.sha256
 
 echo "create nsd-$version.tar.gz.asc with:"
 echo "    gpg --armor --detach-sign --digest-algo SHA256 nsd-$version.tar.gz"
